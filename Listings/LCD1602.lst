@@ -1,0 +1,165 @@
+C51 COMPILER V9.60.0.0   LCD1602                                                           06/15/2021 02:48:45 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE LCD1602
+OBJECT MODULE PLACED IN .\Objects\LCD1602.obj
+COMPILER INVOKED BY: D:\Development\Keil_v5\C51\BIN\C51.EXE Application\LCD1602\LCD1602.c OMF2 OPTIMIZE(8,SPEED) BROWSE 
+                    -INCDIR(.\Application\Button;.\Application\DS18B20;.\Application\LCD1602;.\Application\SYS;.\Application\UART;.\Applicati
+                    -on) DEBUG PRINT(.\Listings\LCD1602.lst) TABS(2) OBJECT(.\Objects\LCD1602.obj)
+
+line level    source
+
+   1          #include <reg52.h>
+   2          #include <intrins.h>
+   3          #include "LCD1602.h"
+   4          #include "math.h"
+   5          /*------------------------------------------------
+   6           uS延时函数，含有输入参数 unsigned char t，无返回值
+   7           unsigned char 是定义无符号字符变量，其值的范围是
+   8           0~255 这里使用晶振12M，精确延时请使用汇编,大致延时
+   9           长度如下 T=tx2+5 uS 
+  10          ------------------------------------------------*/
+  11          void DelayUs2x(unsigned char t)
+  12          {
+  13   1       while(--t);
+  14   1      }
+  15          /*------------------------------------------------
+  16           mS延时函数，含有输入参数 unsigned char t，无返回值
+  17           unsigned char 是定义无符号字符变量，其值的范围是
+  18           0~255 这里使用晶振12M，精确延时请使用汇编
+  19          ------------------------------------------------*/
+  20          void DelayMs(unsigned char t)
+  21          {
+  22   1        t = t*12;
+  23   1       while(t--)
+  24   1       {
+  25   2           //大致延时1mS
+  26   2           DelayUs2x(245);
+  27   2         DelayUs2x(245);
+  28   2       }
+  29   1      }
+  30          /*------------------------------------------------
+  31                        判忙函数
+  32          ------------------------------------------------*/
+  33           bit LCD_Check_Busy(void) 
+  34           { 
+  35   1       DataPort= 0xFF; 
+  36   1       RS = 0; 
+  37   1       RW = 1; 
+  38   1       EN = 0;
+  39   1       _nop_(); 
+  40   1       EN = 1;
+  41   1       return (bit)(DataPort & 0x80);
+  42   1       }
+  43          /*------------------------------------------------
+  44                        写入命令函数
+  45          ------------------------------------------------*/
+  46           void LCD_Write_Com(unsigned char com) 
+  47           {  
+  48   1       while(LCD_Check_Busy()); //忙则等待
+  49   1       RS = 0; 
+  50   1       RW = 0; 
+  51   1       EN = 1; 
+  52   1       DataPort= com; 
+  53   1       _nop_(); 
+C51 COMPILER V9.60.0.0   LCD1602                                                           06/15/2021 02:48:45 PAGE 2   
+
+  54   1       EN = 0;
+  55   1       }
+  56          /*------------------------------------------------
+  57                        写入数据函数
+  58          ------------------------------------------------*/
+  59           void LCD_Write_Data(unsigned char Data) 
+  60           { 
+  61   1       while(LCD_Check_Busy()); //忙则等待
+  62   1       RS = 1; 
+  63   1       RW = 0; 
+  64   1       EN = 1; 
+  65   1       DataPort= Data; 
+  66   1       _nop_();
+  67   1       EN = 0;
+  68   1       }
+  69          
+  70          /*------------------------------------------------
+  71                          清屏函数
+  72          ------------------------------------------------*/
+  73           void LCD_Clear(void) 
+  74           { 
+  75   1       LCD_Write_Com(0x01); 
+  76   1       DelayMs(5);
+  77   1       }
+  78          /*------------------------------------------------
+  79                        写入字符串函数
+  80          ------------------------------------------------*/
+  81          void LCD_Write_String(unsigned char x,unsigned char y,unsigned char *s) 
+  82           {     
+  83   1       if (y == 0) 
+  84   1        {     
+  85   2         LCD_Write_Com(0x80 + x);     
+  86   2        }
+  87   1       else 
+  88   1        {     
+  89   2        LCD_Write_Com(0xC0 + x);     
+  90   2        }        
+  91   1       while (*s) 
+  92   1        {     
+  93   2       LCD_Write_Data( *s);     
+  94   2       s ++;     
+  95   2        }
+  96   1       }  
+  97          /*------------------------------------------------
+  98                        写入字符函数
+  99          ------------------------------------------------*/
+ 100           void LCD_Write_Char(unsigned char x,unsigned char y,unsigned char Data) 
+ 101           {     
+ 102   1       if (y == 0) 
+ 103   1        {
+ 104   2        LCD_Write_Com(0x80 + x);     
+ 105   2        }    
+ 106   1       else 
+ 107   1        {     
+ 108   2        LCD_Write_Com(0xC0 + x);     
+ 109   2        }        
+ 110   1       LCD_Write_Data( Data);  
+ 111   1       }
+ 112          /*------------------------------------------------
+ 113                        初始化函数
+ 114          ------------------------------------------------*/
+ 115           void LCD_Init(void) 
+C51 COMPILER V9.60.0.0   LCD1602                                                           06/15/2021 02:48:45 PAGE 3   
+
+ 116           {
+ 117   1         LCD_Write_Com(0x38);    /*显示模式设置*/ 
+ 118   1         DelayMs(10); 
+ 119   1         LCD_Write_Com(0x38); 
+ 120   1         DelayMs(10); 
+ 121   1         LCD_Write_Com(0x38); 
+ 122   1         DelayMs(10); 
+ 123   1         LCD_Write_Com(0x38);
+ 124   1         DelayMs(10);   
+ 125   1         LCD_Write_Com(0x08);    /*显示关闭*/ 
+ 126   1         DelayMs(10); 
+ 127   1         LCD_Write_Com(0x01);    /*显示清屏*/ 
+ 128   1         DelayMs(10); 
+ 129   1         LCD_Write_Com(0x06);    /*显示光标移动设置*/ 
+ 130   1         DelayMs(10); 
+ 131   1         LCD_Write_Com(0x0C);    /*显示开及光标设置*/
+ 132   1       }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    193    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

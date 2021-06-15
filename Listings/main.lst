@@ -1,0 +1,219 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              06/15/2021 02:54:37 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\Development\Keil_v5\C51\BIN\C51.EXE main.c OMF2 OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Application\Bu
+                    -tton;.\Application\DS18B20;.\Application\LCD1602;.\Application\SYS;.\Application\UART;.\Application) DEBUG PRINT(.\Listi
+                    -ngs\main.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <reg52.h>
+   2          //#include <STC12C5A60S2.H>
+   3          #include "intrins.h"
+   4          
+   5          #include "Sys.h"
+   6          #include "stdio.h"//使用printf需要
+   7          //#include "DS18B20.h"
+   8          #include "Uart.h"
+   9          //#include "LCD1602.h"
+  10          //#include "key.h"
+  11          /*Declare SFR associated with the IAP*/
+  12          
+  13          sfr IAP_DATA  = 0xC2;   //  Flash data register
+  14          sfr IAP_ADDRH = 0xC3;   //  Flash address HIGH
+  15          sfr IAP_ADDRL = 0xC4;   //  Flash address LOW
+  16          sfr IAP_CMD   = 0xC5;   //  Flash command register
+  17          sfr IAP_TRIG  = 0xC6;   //  Flash command trigger
+  18          sfr IAP_CONTR = 0xC7;   //  Flash control register
+  19          
+  20          /*Define ISP/IAP/EEPROM command*/
+  21          #define CMD_IDLE    0   //Stand-By
+  22          #define CMD_READ    1   //Byte-Read
+  23          #define CMD_PROGRAM 2   //Byte-Program
+  24          #define CMD_ERASE   3   //Sector_Erase
+  25          
+  26          /*Define ISP/IAP/EEPROM operation const for IAP_CONTR*/
+  27          //#define ENABLE_IAP    0x80    //if SYSCLK<30MHZ
+  28          //#define ENABLE_IAP    0x81    //if SYSCLK<24MHZ
+  29          #define ENABLE_IAP    0x82    //if SYSCLK<20MHZ
+  30          //#define ENABLE_IAP    0x83    //if SYSCLK<12MHZ
+  31          //#define ENABLE_IAP    0x84    //if SYSCLK<6MHZ
+  32          //#define ENABLE_IAP    0x85    //if SYSCLK<3MHZ
+  33          //#define ENABLE_IAP    0x86    //if SYSCLK<2MHZ
+  34          //#define ENABLE_IAP    0x87    //if SYSCLK<1MHZ
+  35          //Start address for STC12C5A60S2 series EEPROM
+  36          #define IAP_ADDRESS 0x0000
+  37          void Delay(uint8 n);
+  38          void IapIdle();
+  39          uint8 IapReadByte(uint8 addr);
+  40          void IapProgramByte(uint8 addr,uint8 dat);
+  41          void IapEraseSector(uint8 addr);
+  42          void main()
+  43          {
+  44   1          uint8 i;
+  45   1          Uart_Init();        //串口初始化
+  46   1        
+  47   1          P1 = 0xfe;                    //1111,1110 System Reset OK
+  48   1          Delay(10);                    //Delay
+  49   1          printf("Erase start\r\n");
+  50   1          IapEraseSector(IAP_ADDRESS);  //Erase current sector
+  51   1          printf("Erase over\r\n");
+  52   1          for(i=0;i<512;i++)
+  53   1          {
+C51 COMPILER V9.60.0.0   MAIN                                                              06/15/2021 02:54:37 PAGE 2   
+
+  54   2            if(IapReadByte(IAP_ADDRESS)!=0xff)
+  55   2              printf("Erase error\r\n");
+  56   2              goto Error;               //if error,break
+  57   2          }
+  58   1          printf("Erase OK\r\n");
+  59   1          P1 = 0xfc;                    //1111,1100 Erase successful
+  60   1          Delay(10);                    //Delay
+  61   1          for(i=0;i<512;i++)            //Verify 512 bytes data
+  62   1          {
+  63   2            if(IapReadByte(IAP_ADDRESS+i)!=(uint8)i)
+  64   2              printf("Verify error\r\n");
+  65   2              goto Error;               //if error,break
+  66   2          }
+  67   1          printf("Verify OK\r\n");
+  68   1          P1 = 0xf0;                    //1111,0000 Verify successful
+  69   1          while(1);
+  70   1        Error:
+  71   1          P1 &= 0x7f;                 //0xxx,xxxx IAP operation fail
+  72   1          printf("operation fail\r\n");
+  73   1          while(1);
+  74   1      }
+  75          /*----------------------------------------
+  76          Software delay function
+  77          -----------------------------------------*/
+  78          void Delay(uint8 n)
+  79          {
+  80   1        uint8 x;
+  81   1        while(n--)
+  82   1        {
+  83   2          x = 0;
+  84   2          while(++x);
+  85   2        }
+  86   1      }
+  87          /*----------------------------------------
+  88          Disable ISP/IAP/EEPROM function
+  89          Make MCU in a safe state
+  90          -----------------------------------------*/
+  91          void IapIdle()
+  92          {
+  93   1        IAP_CONTR = 0;        //Close IAP function
+  94   1        IAP_CMD   = 0;        //Clear command to standby
+  95   1        IAP_TRIG  = 0;        //Clear trigger register
+  96   1        IAP_ADDRH = 0x80;     //Data ptr point to non-EEPROM area
+  97   1        IAP_ADDRL = 0;        //Clear IAP address to prevent misuse
+  98   1      }
+  99          /*----------------------------------------
+ 100          Read one byte from ISP/IAP/EEPROM area
+ 101          Input:addr(ISP/IAP/EEPROM address)
+ 102          Output:Flash data
+ 103          -----------------------------------------*/
+ 104          uint8 IapReadByte(uint8 addr)
+ 105          {
+ 106   1        uint8 dat;                      //Data buffer
+ 107   1        
+ 108   1        IAP_CONTR = ENABLE_IAP;       //Open IAP function,and set wait time
+ 109   1        IAP_CMD = CMD_READ;           //Set ISP/IAP/EEPROM READ command
+ 110   1        IAP_ADDRL = addr;             //Set ISP/IAP/EEPROM address low
+ 111   1        IAP_ADDRH = addr>>8;          //Set ISP/IAP/EEPROM address high
+ 112   1        IAP_TRIG = 0x5a;              //Send trigger command1(0x5a)
+ 113   1        IAP_TRIG = 0xa5;              //Send trigger command2(0xa5)
+ 114   1        _nop_();                      //MCU will hold here until ISP/IAP/EEPROM operation complete
+ 115   1        dat = IAP_DATA;               //Read ISP/IAP/EEPROM data
+C51 COMPILER V9.60.0.0   MAIN                                                              06/15/2021 02:54:37 PAGE 3   
+
+ 116   1        IapIdle();                    //Close ISP/IAP/EEPROM function
+ 117   1        return dat;                   //Return Flash data
+ 118   1      }
+ 119          /*----------------------------------------
+ 120          Program one byte to ISP/IAP/EEPROM area
+ 121          Input:  addr(ISP/IAP/EEPROM address)
+ 122                  dat(ISP/IAP/EEPROM data)
+ 123          Output:-
+ 124          -----------------------------------------*/
+ 125          void IapProgramByte(uint8 addr,uint8 dat)
+ 126          {
+ 127   1        IAP_CONTR = ENABLE_IAP;       //Open IAP function,and set wait time
+ 128   1        IAP_CMD   = CMD_PROGRAM;        //Set ISP/IAP/EEPROM READ command
+ 129   1        IAP_ADDRL = addr;             //Set ISP/IAP/EEPROM address low
+ 130   1        IAP_ADDRH = addr>>8;          //Set ISP/IAP/EEPROM address high
+ 131   1        IAP_DATA  = dat;              //Write ISP/IAP/EEPROM data
+ 132   1        IAP_TRIG  = 0x5a;             //Send trigger command1(0x5a)
+ 133   1        IAP_TRIG  = 0xa5;             //Send trigger command2(0xa5)
+ 134   1        _nop_();                      //MCU will hold here until ISP/IAP/EEPROM operation complete
+ 135   1        IapIdle();                    //Close ISP/IAP/EEPROM function
+ 136   1      }
+ 137          /*----------------------------------------
+ 138          Erase one sector area
+ 139          Input:  addr(ISP/IAP/EEPROM address)
+ 140          Output:-
+ 141          -----------------------------------------*/
+ 142          void IapEraseSector(uint8 addr)
+ 143          {
+ 144   1        IAP_CONTR = ENABLE_IAP;       //Open IAP function,and set wait time
+ 145   1        IAP_CMD   = CMD_ERASE;        //Set ISP/IAP/EEPROM READ command
+ 146   1        IAP_ADDRL = addr;             //Set ISP/IAP/EEPROM address low
+ 147   1        IAP_ADDRH = addr>>8;          //Set ISP/IAP/EEPROM address high
+ 148   1        IAP_TRIG  = 0x5a;             //Send trigger command1(0x5a)
+ 149   1        IAP_TRIG  = 0xa5;             //Send trigger command2(0xa5)
+ 150   1        _nop_();                      //MCU will hold here until ISP/IAP/EEPROM operation complete
+ 151   1        IapIdle();                    //Close ISP/IAP/EEPROM function
+ 152   1      }
+ 153          //#include "reg52.h"
+ 154          //#include "Sys.h"
+ 155          //#include "stdio.h"//使用printf需要
+ 156          //#include "DS18B20.h"
+ 157          //#include "Uart.h"
+ 158          //#include "LCD1602.h"
+ 159          //#include "key.h"
+ 160          //sbit j = P1^7;
+ 161          //sbit i = P1^6;
+ 162          //sbit Beep = P0^4;
+ 163          //sbit BED  = P1^3;
+ 164          //void main()
+ 165          //{
+ 166          //  LCD_Init();         // 初始化LCD
+ 167          //  LCD_Clear();        //清屏
+ 168          //  Uart_Init();        //串口初始化
+ 169          //  Beep = 0;
+ 170          ////  BED = 0;
+ 171          //  LCD_Write_String(0,0,"GSH-BED");
+ 172          //  printf("GSH");
+ 173          //    while(1)
+ 174          //    {
+ 175          //      BED = 1;
+ 176          ////      Beep = 0;
+ 177          //      delay_ms(3000);
+C51 COMPILER V9.60.0.0   MAIN                                                              06/15/2021 02:54:37 PAGE 4   
+
+ 178          //      BED = 0;
+ 179          ////      Beep = 1;
+ 180          //      delay_ms(3000);
+ 181          //    }
+ 182          //}
+*** WARNING C294 IN LINE 57 OF main.c: unreachable code
+*** WARNING C294 IN LINE 66 OF main.c: unreachable code
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    232    ----
+   CONSTANT SIZE    =     96    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       1
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  2 WARNING(S),  0 ERROR(S)

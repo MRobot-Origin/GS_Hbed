@@ -1,9 +1,0 @@
-".\Objects\main.obj",
-".\Objects\Key.obj",
-".\Objects\DS18B20.obj",
-".\Objects\Sys.obj",
-".\Objects\LCD1602.obj",
-".\Objects\Uart.obj" 
-TO ".\Objects\GSH-1" 
-
-PRINT(".\Listings\GSH-1.map")

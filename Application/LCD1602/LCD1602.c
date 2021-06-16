@@ -114,7 +114,7 @@ void LCD_Write_String(unsigned char x,unsigned char y,unsigned char *s)
 ------------------------------------------------*/
  void LCD_Init(void) 
  {
-   LCD_Write_Com(0x38);    /*显示模式设置*/ 
+   LCD_Write_Com(0x38);   /*显示模式设置*/ 
    DelayMs(10); 
    LCD_Write_Com(0x38); 
    DelayMs(10); 
@@ -122,11 +122,12 @@ void LCD_Write_String(unsigned char x,unsigned char y,unsigned char *s)
    DelayMs(10); 
    LCD_Write_Com(0x38);
    DelayMs(10);   
-   LCD_Write_Com(0x08);    /*显示关闭*/ 
+   LCD_Write_Com(0x08);   /*显示关闭*/ 
    DelayMs(10); 
-   LCD_Write_Com(0x01);    /*显示清屏*/ 
+   LCD_Write_Com(0x01);   /*显示清屏*/ 
    DelayMs(10); 
-   LCD_Write_Com(0x06);    /*显示光标移动设置*/ 
+   LCD_Write_Com(0x06);   /*显示光标移动设置*/ 
    DelayMs(10); 
-   LCD_Write_Com(0x0C);    /*显示开及光标设置*/
+   LCD_Write_Com(0x0C);   /*显示开及光标设置*/
+	 LCD_Clear();						/*清屏*/
  }

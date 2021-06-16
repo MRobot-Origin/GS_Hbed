@@ -1,4 +1,3 @@
-#include <reg52.h>
 #include <intrins.h>
 #include "DS18B20.h"
 #include "Sys.h"//自定义延时函数，uint8和uint16

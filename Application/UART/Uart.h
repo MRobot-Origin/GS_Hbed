@@ -9,8 +9,8 @@
 ******************************************************************/
 #ifndef __UART_H
 #define __UART_H
-#include <reg52.h>
 #include "Sys.h"//宏定义uint16;uint8
+#include <stdio.h>//使用printf需要
 //#define uint8 	unsigned char
 //#define uint16 	unsigned int
 void Uart_Init(void);//串口初始化

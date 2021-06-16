@@ -1,4 +1,3 @@
-#include <reg52.h>
 #include "Sys.h"
 #include "Uart.h"
 #include "stdio.h"//使用printf需要

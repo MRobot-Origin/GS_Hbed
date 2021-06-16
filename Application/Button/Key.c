@@ -1,4 +1,3 @@
-#include <reg52.h>
 #include "key.h"
 #include "Sys.h"
 

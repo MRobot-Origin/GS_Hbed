@@ -1,6 +1,6 @@
 #ifndef __SYS_H
 #define __SYS_H
-#include <reg52.h>
+#include "STC12C5A60S2.h"
 #include <intrins.h>
 #define uint8 	unsigned char
 #define uint16 	unsigned int

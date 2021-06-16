@@ -1,15 +1,14 @@
-#include "Sys.h"
-
+#include "EEPROM.h"
 #include "stdio.h"//使用printf需要
 #include "Uart.h"
 /*Declare SFR associated with the IAP*/
 
-sfr IAP_DATA	=	0xC2;		//	Flash data register
-sfr IAP_ADDRH	= 0xC3;		// 	Flash address HIGH
-sfr IAP_ADDRL	= 0xC4;		// 	Flash address LOW
-sfr IAP_CMD		= 0xC5;		//	Flash command register
-sfr IAP_TRIG 	= 0xC6;		//	Flash command trigger
-sfr IAP_CONTR = 0xC7;		//	Flash control register
+//sfr IAP_DATA	=	0xC2;		//	Flash data register
+//sfr IAP_ADDRH	= 0xC3;		// 	Flash address HIGH
+//sfr IAP_ADDRL	= 0xC4;		// 	Flash address LOW
+//sfr IAP_CMD		= 0xC5;		//	Flash command register
+//sfr IAP_TRIG 	= 0xC6;		//	Flash command trigger
+//sfr IAP_CONTR = 0xC7;		//	Flash control register
 
 /*Define ISP/IAP/EEPROM command*/
 #define	CMD_IDLE		0		//Stand-By
@@ -27,8 +26,9 @@ sfr IAP_CONTR = 0xC7;		//	Flash control register
 //#define ENABLE_IAP		0x86		//if SYSCLK<2MHZ
 //#define ENABLE_IAP		0x87		//if SYSCLK<1MHZ
 //Start address for STC12C5A60S2 series EEPROM
-#define	DEBUG_DATA	0x56		//存储在 EEPROM 单元的数值（用户可修改测试）
-#define	IAP_ADDRESS	0x0000	//EEPROM存入地址（用户可修改测试）总共1K大小，2个扇区，开始地址0000，结束地址03ff
+#define	DEBUG_DATA	0x56		//存储在 EEPROM 单元的数值
+#define	IAP_ADDRESS	0x0000	//EEPROM存入地址	总1K大小，2个扇区，开始地址0000，结束地址03ff
+
 static void Delay(void);
 static void IapIdle(void);
 void EEPROM_Test(void);
@@ -84,16 +84,16 @@ Output:Flash data
 -----------------------------------------*/
 uint8 IapReadByte(uint16 addr)
 {
-	uint8 dat;											//Data buffer
+	uint8 dat;										//Data buffer
 	
 	IAP_CONTR = ENABLE_IAP;				//Open IAP function,and set wait time
-	IAP_CMD = CMD_READ;						//Set ISP/IAP/EEPROM READ command
+	IAP_CMD 	= CMD_READ;					//Set ISP/IAP/EEPROM READ command
 	IAP_ADDRL = addr;							//Set ISP/IAP/EEPROM address low
 	IAP_ADDRH = addr>>8;					//Set ISP/IAP/EEPROM address high
-	IAP_TRIG = 0x5a;							//Send trigger command1(0x5a)
-	IAP_TRIG = 0xa5;							//Send trigger command2(0xa5)
+	IAP_TRIG 	= 0x5a;							//Send trigger command1(0x5a)
+	IAP_TRIG 	= 0xa5;							//Send trigger command2(0xa5)
 	_nop_();											//MCU will hold here until ISP/IAP/EEPROM operation complete
-	dat = IAP_DATA;								//Read ISP/IAP/EEPROM data
+	dat 			= IAP_DATA;					//Read ISP/IAP/EEPROM data
 	IapIdle();										//Close ISP/IAP/EEPROM function
 	return dat;										//Return Flash data
 }

@@ -139,7 +139,7 @@
           <Target>
             <UseTarget>0</UseTarget>
             <LoadApplicationAtStartup>1</LoadApplicationAtStartup>
-            <RunToMain>0</RunToMain>
+            <RunToMain>1</RunToMain>
             <RestoreBreakpoints>1</RestoreBreakpoints>
             <RestoreWatchpoints>1</RestoreWatchpoints>
             <RestoreMemoryDisplay>1</RestoreMemoryDisplay>
@@ -149,7 +149,7 @@
             <RestoreSysVw>1</RestoreSysVw>
           </Target>
           <RunDebugAfterBuild>0</RunDebugAfterBuild>
-          <TargetSelection>-1</TargetSelection>
+          <TargetSelection>12</TargetSelection>
           <SimDlls>
             <CpuDll></CpuDll>
             <CpuDllArguments></CpuDllArguments>
@@ -163,7 +163,7 @@
             <PeripheralDll></PeripheralDll>
             <PeripheralDllArguments></PeripheralDllArguments>
             <InitializationFile></InitializationFile>
-            <Driver></Driver>
+            <Driver>BIN\STCMON51.DLL</Driver>
           </TargetDlls>
         </DebugOption>
         <Utilities>
@@ -324,7 +324,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>.\Application\Button;.\Application\DS18B20;.\Application\LCD1602;.\Application\SYS;.\Application\UART;.\Application;.\Application\EEPROM</IncludePath>
+              <IncludePath>.\Application\Button;.\Application\DS18B20;.\Application\LCD1602;.\Application\SYS;.\Application\UART;.\Application;.\Application\EEPROM;.\Application\ADC</IncludePath>
             </VariousControls>
           </C51>
           <Ax51>
@@ -407,9 +407,14 @@
               <FilePath>.\Application\UART\Uart.c</FilePath>
             </File>
             <File>
-              <FileName>DS18B20.c</FileName>
+              <FileName>STC12(ADC flag).c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Application\DS18B20\DS18B20.c</FilePath>
+              <FilePath>.\Application\ADC\STC12(ADC flag).c</FilePath>
+            </File>
+            <File>
+              <FileName>Task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Application\Task.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -9,7 +9,6 @@
 ******************************************************************/
 #ifndef __KEY_H
 #define __KEY_H
-#include <reg52.h>
 #include "Sys.h"//包合被注释的部分，用的时候，删掉这句，然后把下面的注释去掉
 //#define uint8 	unsigned char
 //#define uint16 	unsigned int

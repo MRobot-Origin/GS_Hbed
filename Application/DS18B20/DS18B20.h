@@ -10,7 +10,6 @@
 
 #ifndef __DS18B20_H
 #define __DS18B20_H
-#include <reg52.h>
 #include "Sys.h"/*配合Sys.h和Sys.c使用*/
 
 //#define uint8 	unsigned char

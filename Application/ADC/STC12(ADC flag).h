@@ -21,9 +21,6 @@
 //#define ADC_SPEEDL  0x20            //360 个时钟周期转换一次
 //#define ADC_SPEEDH  0x40            //180 个时钟周期转换一次
 //#define ADC_SPEEDHH 0x60            //90 个时钟周期转换一次
-#define COR   2.47										//P10端口标准参考电压
-#define R_L  0.025											//导电材料的长度，单位	M
-#define R_S  0.0000785										//导电材料的横截面积 单位平方米
 //**********************************延时函数
 extern void Delay1(uint n);
 //******************************ADC初始化函数
@@ -34,6 +31,5 @@ uint Get_ADC_Result(uchar ch);
 float Operating_Voltage();
 float Count(uchar ch);
 float Filtering_Voltage(uchar ch);
-float Res_Calculation();				//计算电阻值，根据电阻分压计算
-float p_Calculation();					//计算测量导体的电导值
+
 #endif 

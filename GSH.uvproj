@@ -324,7 +324,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>.\Application\Button;.\Application\DS18B20;.\Application\LCD1602;.\Application\SYS;.\Application\UART;.\Application;.\Application\EEPROM;.\Application\ADC</IncludePath>
+              <IncludePath>.\Application\Button;.\Application\DS18B20;.\Application\LCD1602;.\Application\SYS;.\Application\UART;.\Application;.\Application\EEPROM;.\Application\ADC;.\Application\Thermistortables;.\Application\kalman</IncludePath>
             </VariousControls>
           </C51>
           <Ax51>
@@ -415,6 +415,11 @@
               <FileName>Task.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Application\Task.c</FilePath>
+            </File>
+            <File>
+              <FileName>Thermistortables.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Application\Thermistortables\Thermistortables.c</FilePath>
             </File>
           </Files>
         </Group>

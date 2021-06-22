@@ -26,12 +26,13 @@
 //#define ENABLE_IAP		0x86		//if SYSCLK<2MHZ
 //#define ENABLE_IAP		0x87		//if SYSCLK<1MHZ
 //Start address for STC12C5A60S2 series EEPROM
-#define	DEBUG_DATA	0x56		//存储在 EEPROM 单元的数值
+#define	DEBUG_DATA	0x12		//存储在 EEPROM 单元的数值
+#define	DEBUG_DATE	0x34		//存储在 EEPROM 单元的数值
 #define	IAP_ADDRESS	0x0000	//EEPROM存入地址	总1K大小，2个扇区，开始地址0000，结束地址03ff
 
 static void Delay(void);
 static void IapIdle(void);
-void EEPROM_Test(void);
+//void EEPROM_Test(void);
 
 uint8 IapReadByte(uint16 addr);
 void IapProgramByte(uint16 addr,uint8 dat);
@@ -39,17 +40,23 @@ void IapEraseSector(uint16 addr);
 
 void EEPROM_Test(void)
 {
-		uint8 i;
+		uint8 i,j;
+		int	a = 0;
 		Uart_Init();				//串口初始化
 		Delay();										//Delay
 		printf("Erase start\r\n");
 		IapEraseSector(IAP_ADDRESS);	//Erase
+		IapEraseSector(0x0001);	//Erase
 		printf("Erase over\r\n");
 		IapProgramByte(IAP_ADDRESS,DEBUG_DATA);//write
+		IapProgramByte(0x0001,DEBUG_DATE);//write
 		printf("Program over\r\n");
 		Delay();
-		i = IapReadByte(IAP_ADDRESS);//read
-		printf("CCC: %x\n",i);
+		i =IapReadByte(IAP_ADDRESS);//read
+		j =IapReadByte(0x0001);//read
+		printf("CCC: %x \r\n",i,j);
+		a=((int)i<<8)+(int)j;//地址计算
+		printf("%d",a);
 		while(1);
 }
 /*----------------------------------------

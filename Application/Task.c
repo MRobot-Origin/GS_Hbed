@@ -10,22 +10,27 @@ extern float Rt;
 extern float Temp;
 void setup(void)
 {
-	LCD_Init();         // 初始化LCD
 	Uart_Init();				//串口初始化
 	Init_ADC();  				//AD转换初始化
-	Beep = 0;
+	LCD_Init();         // 初始化LCD
+	Beep = 0;						//初始化蜂鸣器
+	BED = 1;						//初始化热床
 	
-//	LCD_Write_String(0,0,"GSH-BED");
-//	printf("GSH");
-//		LCD_Clear(); 
-		LCD_Write_String(0,0,"Tem_V:");	//显示系统工作电压
-		LCD_Write_String(0,1,"Tem:");
+	LCD_Write_String(2,0,"<Geek Start>");	//显示系统工作电压
+	LCD_Write_String(0,1,"--GSH_Bed V1.0--");
+	delay_ms(5000);
+	LCD_Clear();
+	
+	LCD_Write_String(0,0,"Set:");	//显示设定温度
+	LCD_Write_String(0,1,"Temp:");
+//	EEPROM_Test();
 }
 void loop(void)
 {
 	while(1)
 	{
-		
+//		BED = ~BED;
+//		Beep = ~Beep;
 		printf("V: %f \r\n",(float)Filtering_Voltage(2));//
 		Tem_calculation();//温度计算
 		printf("R: %f \r\n",Rt);
@@ -55,3 +60,15 @@ void LCD_TEM(uint8 a,uint8 b,float p)
 	LCD_Write_Char(a+5,b,(int)(p*100)%100%10+0x30); //百分位
 	LCD_Write_Char(a+6,b,'C');
 }
+
+
+//void Save_Seting(void)
+//{
+//		IapEraseSector(IAP_ADDRESS);	//Erase
+//		printf("Erase over\r\n");
+//		IapProgramByte(IAP_ADDRESS,DEBUG_DATA);//write
+//}
+//int Get_TempSet(void)
+//{
+//	
+//}

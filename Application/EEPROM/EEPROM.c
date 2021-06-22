@@ -26,38 +26,62 @@
 //#define ENABLE_IAP		0x86		//if SYSCLK<2MHZ
 //#define ENABLE_IAP		0x87		//if SYSCLK<1MHZ
 //Start address for STC12C5A60S2 series EEPROM
-#define	DEBUG_DATA	0x12		//存储在 EEPROM 单元的数值
-#define	DEBUG_DATE	0x34		//存储在 EEPROM 单元的数值
-#define	IAP_ADDRESS	0x0000	//EEPROM存入地址	总1K大小，2个扇区，开始地址0000，结束地址03ff
+#define	DEBUG_DATA	0x1234		//存储在 EEPROM 单元的数值
+
+#define	IAP_ADDRESS_L	0x0000	//EEPROM存入地址	总1K大小，2个扇区，开始地址0000，结束地址03ff
+#define IAP_ADDRESS_H	0x0001
 
 static void Delay(void);
 static void IapIdle(void);
-//void EEPROM_Test(void);
-
-uint8 IapReadByte(uint16 addr);
-void IapProgramByte(uint16 addr,uint8 dat);
-void IapEraseSector(uint16 addr);
-
+static uint8 IapReadByte(uint16 addr);
+static void IapProgramByte(uint16 addr,uint8 dat);
+static void IapEraseSector(uint16 addr);
+#ifdef TEST_EEPROM
 void EEPROM_Test(void)
 {
 		uint8 i,j;
-		int	a = 0;
-		Uart_Init();				//串口初始化
-		Delay();										//Delay
+		uint16	a = 0;
 		printf("Erase start\r\n");
-		IapEraseSector(IAP_ADDRESS);	//Erase
-		IapEraseSector(0x0001);	//Erase
+		IapEraseSector(IAP_ADDRESS_L);	//Erase
+		IapEraseSector(IAP_ADDRESS_H);	//Erase
 		printf("Erase over\r\n");
-		IapProgramByte(IAP_ADDRESS,DEBUG_DATA);//write
-		IapProgramByte(0x0001,DEBUG_DATE);//write
+		IapProgramByte(IAP_ADDRESS_L,(uint8)(DEBUG_DATA>>8));//write
+		IapProgramByte(IAP_ADDRESS_H,(uint8)DEBUG_DATA);//write
 		printf("Program over\r\n");
 		Delay();
-		i =IapReadByte(IAP_ADDRESS);//read
-		j =IapReadByte(0x0001);//read
+		i =IapReadByte(IAP_ADDRESS_L);//read
+		j =IapReadByte(IAP_ADDRESS_H);//read
 		printf("CCC: %x \r\n",i,j);
-		a=((int)i<<8)+(int)j;//地址计算
-		printf("%d",a);
+		a=((uint16)i<<8)+(uint16)j;//数据整合
+		printf("%x",a);
 		while(1);
+}
+#endif
+
+uint8 Data_preservation(uint16 dat)
+{
+	uint8 read_dat1,read_dat2;
+	uint16 ver;
+	
+	IapEraseSector(IAP_ADDRESS_L);	//Erase
+	IapEraseSector(IAP_ADDRESS_H);	//Erase
+	Delay();
+	IapProgramByte(IAP_ADDRESS_L,(uint8)(dat>>8));//write
+	IapProgramByte(IAP_ADDRESS_H,(uint8)dat);//write
+	Delay();
+	read_dat1 =IapReadByte(IAP_ADDRESS_L);//read
+	read_dat2 =IapReadByte(IAP_ADDRESS_H);//read
+	
+	ver = ((uint16)read_dat1<<8)+(uint16)read_dat2;
+	if(ver == dat)
+	{
+		printf("program success;");
+		return 1;
+	}else
+	{
+		printf("program fail:%x",ver);
+		return 0;
+	}
 }
 /*----------------------------------------
 Software delay function

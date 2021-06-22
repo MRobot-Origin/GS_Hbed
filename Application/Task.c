@@ -8,6 +8,8 @@
 #include "cfg.h"
 extern float Rt;
 extern float Temp;
+extern uint8 Data_preservation(uint16 dat);
+//extern void EEPROM_Test(void);
 void setup(void)
 {
 	Uart_Init();				//串口初始化
@@ -23,14 +25,20 @@ void setup(void)
 	
 	LCD_Write_String(0,0,"Set:");	//显示设定温度
 	LCD_Write_String(0,1,"Temp:");
-//	EEPROM_Test();
+#ifdef TEST_EEPROM//测试屏蔽编译
+	EEPROM_Test();
+#endif
+	if(Data_preservation(270))//数据保存
+	{
+		printf("OK");
+	}
 }
 void loop(void)
 {
 	while(1)
 	{
-//		BED = ~BED;
-//		Beep = ~Beep;
+		BED = ~BED;
+		Beep = ~Beep;
 		printf("V: %f \r\n",(float)Filtering_Voltage(2));//
 		Tem_calculation();//温度计算
 		printf("R: %f \r\n",Rt);

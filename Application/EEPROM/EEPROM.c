@@ -57,7 +57,6 @@ void EEPROM_Test(void)
 		while(1);
 }
 #endif
-
 uint8 Data_preservation(uint16 dat)
 {
 	uint8 read_dat1,read_dat2;
@@ -82,6 +81,13 @@ uint8 Data_preservation(uint16 dat)
 		printf("program fail:%x",ver);
 		return 0;
 	}
+}
+uint16 Get_Temp_set(void)
+{
+	uint8 read_dat1,read_dat2;
+	read_dat1 =IapReadByte(IAP_ADDRESS_L);//read
+	read_dat2 =IapReadByte(IAP_ADDRESS_H);//read
+	return (((uint16)read_dat1<<8)+(uint16)read_dat2);
 }
 /*----------------------------------------
 Software delay function

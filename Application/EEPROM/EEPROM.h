@@ -9,4 +9,5 @@ void EEPROM_Test(void);
 
 
 uint8 Data_preservation(uint16 dat);
+uint16 Get_Temp_set(void);
 #endif

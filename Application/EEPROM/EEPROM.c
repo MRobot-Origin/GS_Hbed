@@ -74,7 +74,7 @@ uint8 Data_preservation(uint16 dat)
 	ver = ((uint16)read_dat1<<8)+(uint16)read_dat2;
 	if(ver == dat)
 	{
-		printf("program success;");
+		printf("program success;\r\n");
 		return 1;
 	}else
 	{

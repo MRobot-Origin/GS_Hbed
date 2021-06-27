@@ -324,7 +324,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>.\Application\ADC;.\Application\Button;.\Application\EEPROM;.\Application\LCD1602;.\Application\SYS;.\Application\Thermistortables;.\Application\Timer;.\Application\UART;.\Application</IncludePath>
+              <IncludePath>.\Application\ADC;.\Application\EEPROM;.\Application\LCD1602;.\Application\SYS;.\Application\Thermistortables;.\Application\Timer;.\Application\UART;.\Application</IncludePath>
             </VariousControls>
           </C51>
           <Ax51>
@@ -390,11 +390,6 @@
               <FileName>EEPROM.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Application\EEPROM\EEPROM.c</FilePath>
-            </File>
-            <File>
-              <FileName>Key.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Application\Button\Key.c</FilePath>
             </File>
             <File>
               <FileName>LCD1602.c</FileName>

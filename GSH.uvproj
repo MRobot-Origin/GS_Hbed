@@ -324,7 +324,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>.\Application\Button;.\Application\DS18B20;.\Application\LCD1602;.\Application\SYS;.\Application\UART;.\Application;.\Application\EEPROM;.\Application\ADC;.\Application\Thermistortables;.\Application\kalman</IncludePath>
+              <IncludePath>.\Application\ADC;.\Application\Button;.\Application\EEPROM;.\Application\LCD1602;.\Application\SYS;.\Application\Thermistortables;.\Application\Timer;.\Application\UART;.\Application</IncludePath>
             </VariousControls>
           </C51>
           <Ax51>
@@ -420,6 +420,11 @@
               <FileName>Thermistortables.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Application\Thermistortables\Thermistortables.c</FilePath>
+            </File>
+            <File>
+              <FileName>Timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Application\Timer\Timer.c</FilePath>
             </File>
           </Files>
         </Group>

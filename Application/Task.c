@@ -19,45 +19,43 @@ void setup(void)
 	Uart_Init();				//串口初始化
 	Init_ADC();  				//AD转换初始化
 	LCD_Init();         // 初始化LCD
+	Timer0_init();			//定时器初始化
 	Beep = 0;						//初始化蜂鸣器
 	BED = 1;						//初始化热床
-	LCD_Write_String(2,0,"<Geek Start>");	//开机界面
+	LCD_Write_String(2,0,"<Geek Start>");					//开机界面
 	LCD_Write_String(2,1,"GSH_Bed V1.0");
 	
-	if((Get_Temp_set()>0)&&(Get_Temp_set()<271))//获取并保证设置温度读取正确
+	if((Get_Temp_set()>0)&&(Get_Temp_set()<271))	//获取并保证设置温度读取正确
 	{Set_temp = Get_Temp_set();}
 	else{Set_temp = 0;}
-	
-	delay_ms(4000);
+	delay_ms(2000);
 	LCD_Clear();
-	
-	LCD_Write_String(0,0,"Set:");	//显示设定温度
+	LCD_Write_String(0,0,"Set:");	//显示设定温度	//工作界面显示
 	LCD_TEM(7,0,Set_temp);//设置温度值显示
-//	LCD_TEM(7,1,Temp);//测量温度值显示
 	LCD_Write_String(0,1,"Temp:");
+
 #ifdef TEST_EEPROM//测试屏蔽编译
 	EEPROM_Test();
 #endif
-	if(Data_preservation(270))//数据保存
-	{
-		printf("OK \r\n");
-	}
-	printf("Get:%d \r\n",Get_Temp_set());
-	
+//	if(Data_preservation(270))//数据保存
+//	{
+//		printf("OK \r\n");
+//	}
+//	printf("Get:%d \r\n",Get_Temp_set());
 }
 void loop(void)
 {
 	while(1)
 	{
-		BED = ~BED;
-//		Beep = ~Beep;
-//		printf("V: %f \r\n",(float)Filtering_Voltage(2));//
-		Tem_calculation();//温度计算
-//		printf("R: %f \r\n",Rt);
-		printf("T: %f \r\n",Temp);
-//		LCD_V(7,0,2);//电压值
-		LCD_TEM(7,1,Temp);//测量温度值显示
-		delay_ms(3000);
+//		BED = ~BED;
+////		Beep = ~Beep;
+////		printf("V: %f \r\n",(float)Filtering_Voltage(2));//
+//		Tem_calculation();//温度计算
+////		printf("R: %f \r\n",Rt);
+//		printf("T: %f \r\n",Temp);
+////		LCD_V(7,0,2);//电压值
+//		LCD_TEM(7,1,Temp);//测量温度值显示
+//		delay_ms(3000);
 	}
 }
 

@@ -65,14 +65,16 @@ void loop(void)
 			//简单的温度控制
 			if(SW_flag == 1)//如果当前允许加热，则开始温度控制
 			{
-				if(Temp<(Set_temp+7))//小于设定温度7度开始加热
+				if((Temp<(Set_temp+7))&&(Temp>0))//小于设定温度7度开始加热
 				{
 					BED = ON;
-				}else if(Temp>Set_temp)//大于设定温度停止加热
+				}else if((Temp>Set_temp)||(Temp==0)||(Temp<0))//大于设定温度停止加热
 				{
 					BED = OFF;
 				}
 			}
+			if(Temp<0)//最小值为0
+			{Temp=0;}
 			LCD_TEM(7,0,Set_temp);		//显示设定温度值
 			LCD_TEM(7,1,Temp);				//显示当前温度值
 			/**********************重要代码，修改可能引起过度写入EEPROM导致芯片损毁***************************/
@@ -88,13 +90,17 @@ void loop(void)
 				Dat_Save_flag=0;
 			}
 			/************************************************/
-//		printf("Set: %d \r\n",Set_temp);//串口输出当前温度
+//		printf("Set: %d \r\n",Set_temp);//串口输出当前温度、
+//			printf("Set: %f \r\n",Rt);//串口输出当前阻值
 //		printf("T: %f \r\n",Temp);//串口输出当前温度
-			delay_ms(500);//大概0.5秒刷新一次屏幕			
+			delay_ms(100);//大概0.1秒刷新一次屏幕			
 		}
 		else
 		{
 			BED = OFF;
+			Beep = 1;			 //超时关闭热床前，蜂鸣器响一秒
+			delay_ms(1000);
+			Beep = 0;
 			LCD_Clear();
 		}
 	}

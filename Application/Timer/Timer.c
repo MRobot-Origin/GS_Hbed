@@ -50,6 +50,7 @@ void Timer0() interrupt 1
 	{
 		Tem_On_flag = 0;//Flag复位
 		SW_flag = 1;		//当前允许加热
+		Sys_SW = 1;			//唤醒主流程
 	}
 	if((Tem_On == 0)&&(Tem_On_flag!=1))//第一次检测到加热按钮按下，记录下来，等待下次检测（按键消抖）
 	{Tem_On_flag = 1;}
@@ -59,6 +60,7 @@ void Timer0() interrupt 1
 	{
 		Tem_Off_flag = 0;//Flag复位
 		SW_flag = 0;		//当前不允许加热
+		Sys_SW = 0;			//关闭主流程
 	}
 	if((Tem_Off == 0)&&(Tem_Off_flag!=1))//第一次检测到停止按钮按下，记录下来，等待下次检测（按键消抖）
 	{Tem_Off_flag = 1;}
@@ -66,14 +68,15 @@ void Timer0() interrupt 1
 /**************************************************************************************************/
 	if((Ctrol_up_flag == 1)&&(Tem_Up == 1))//按键松开检测//step3
 	{
-		Set_temp++;			//设定值+1
+		Set_temp++;				//设定值+1
 		if(Set_temp>270)
 		{Set_temp=270;}
 		Ctrol_up_flag = 0;
-		Dat_Save_T_S = 1;//允许保存计时
-		Time_count = 0;//不满10秒的计时将被清零
+		Dat_Save_T_S = 1;	//允许保存计时
+		Time_count = 0;		//不满10秒的计时将被清零
 		Tem_Up_flag = 0;	//按键检测Flag复位
 		Beep_Action = 0;
+		Sys_SW = 1;				//唤醒主流程
 	}
 	if((Tem_Up_flag == 1)&&(Tem_Up == 0))//增加设定温度按钮被按下//step2
 	{
@@ -88,14 +91,15 @@ void Timer0() interrupt 1
 /**************************************************************************************************/
 	if((Ctrol_Down_flag == 1)&&(Tem_Down == 1))//按键松开检测//step3
 	{
-		Set_temp--;			//设定值-1
+		Set_temp--;				//设定值-1
 		if(Set_temp<0)
 		{Set_temp=0;}
 		Ctrol_Down_flag = 0;
-		Dat_Save_T_S = 1;//允许保存计时
-		Time_count = 0;//不满10秒的计时将被清零
+		Dat_Save_T_S = 1;	//允许保存计时
+		Time_count = 0;		//不满10秒的计时将被清零
 		Tem_Down_flag = 0;//Flag复位
 		Beep_Action = 0;
+		Sys_SW = 1;				//唤醒主流程
 	}
 	if((Tem_Down_flag == 1)&&(Tem_Down == 0))//减小设定温度//step2
 	{
@@ -108,9 +112,9 @@ void Timer0() interrupt 1
 	{Tem_Down_flag = 1;}
 /**************************************************************************************************/
 	Time_num++;
-	if(Time_num>10)//1秒计时，每次调整温度设定后开始计时，超过10秒则保存当前设定温度
+	if(Time_num>10)//1秒计时，每次调整温度设定后开始计时，超过5秒则保存当前设定温度
 	{
-//		Beep=~Beep;
+		Time_num = 0;//清除计数等待重新计数		
 		Sys_Time++;//系统时间//单位秒
 		if(Dat_Save_T_S==1)//允许保存计时
 		{
@@ -122,8 +126,8 @@ void Timer0() interrupt 1
 				Dat_Save_T_S = 0;
 			}
 		}
-		Time_num = 0;//清除计数等待重新计数
-		if(Sys_Time>120)//超过20分钟则关闭主流程
+
+		if(Sys_Time>12000)//超过20分钟则关闭主流程
 		{
 			Sys_SW = 0;//关闭主流程
 			Sys_Time = 0;

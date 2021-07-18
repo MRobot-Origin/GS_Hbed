@@ -12,12 +12,13 @@
 ****************************************************/
 uint16	Time_num = 0;
 
-uint8		Tem_On_flag = 0;
+uint8		Tem_sw_flag = 0;
 uint8		Tem_Off_flag = 0;
 uint8		Tem_Up_flag	 = 0;
 uint8		Tem_Down_flag = 0;
 uint8		Ctrol_up_flag = 0;
 uint8		Ctrol_Down_flag = 0;
+uint8		Ctrol_mode_flag = 0;
 
 uint8		Dat_Save_T_S = 0;	//保存数据所用的计时开始flag
 uint8		Dat_Save_flag = 0;//1则可以保存
@@ -46,15 +47,31 @@ void Timer0_init(void)//10ms定时中断，16位自动重载
 void Timer0() interrupt 1
 {
 /**************************************************************************************************/
-	if((Tem_On_flag == 1)&&(Tem_On == 0))//开始加热
+	if((Ctrol_mode_flag == 1)&&(Tem_SW == 1))//按键松开检测//step3
 	{
-		Tem_On_flag = 0;//Flag复位
-		SW_flag = 1;		//当前允许加热
-		Sys_SW = 1;			//唤醒主流程
+		if(MODE == ModeA)
+		{
+			MODE = ModeB;
+		}else if(MODE == ModeB)
+		{
+			MODE = ModeA;
+		}
+		Ctrol_mode_flag = 0;
+		Dat_Save_T_S = 1;	//允许保存计时
+		Time_count = 0;		//不满10秒的计时将被清零
+		Tem_sw_flag = 0;	//按键检测Flag复位
+		Beep_Action = 0;
+		Sys_SW = 1;				//唤醒主流程
 	}
-	if((Tem_On == 0)&&(Tem_On_flag!=1))//第一次检测到加热按钮按下，记录下来，等待下次检测（按键消抖）
-	{Tem_On_flag = 1;}
-/**************************************************************************************************/
+	if((Tem_sw_flag == 1)&&(Tem_SW == 0))//模式切换按钮被按下//step2
+	{
+		SW_flag = 1;			//当前允许加热
+		Ctrol_mode_flag = 1;//允许模式设置
+		if(Beep_Action == 0)
+		{Beep_flag = 1;}//蜂鸣器音效
+	}
+	if((Tem_SW == 0)&&(Tem_sw_flag == 0))//第一次检测到停止按钮按下，记录下来，等待下次检测（按键消抖）step1
+	{Tem_sw_flag = 1;}
 /**************************************************************************************************/
 	if((Tem_Off_flag == 1)&&(Tem_Off == 0))//停止加热
 	{
@@ -68,9 +85,17 @@ void Timer0() interrupt 1
 /**************************************************************************************************/
 	if((Ctrol_up_flag == 1)&&(Tem_Up == 1))//按键松开检测//step3
 	{
-		Set_temp++;				//设定值+1
-		if(Set_temp>270)
-		{Set_temp=270;}
+		if(MODE == ModeA)
+		{
+			Set_temp1++;				//设定值+1
+			if(Set_temp1>270)
+			{Set_temp1=270;}
+		}else if(MODE == ModeB)
+		{
+			Set_temp2++;				//设定值+1
+			if(Set_temp2>270)
+			{Set_temp2=270;}
+		}
 		Ctrol_up_flag = 0;
 		Dat_Save_T_S = 1;	//允许保存计时
 		Time_count = 0;		//不满10秒的计时将被清零
@@ -91,9 +116,17 @@ void Timer0() interrupt 1
 /**************************************************************************************************/
 	if((Ctrol_Down_flag == 1)&&(Tem_Down == 1))//按键松开检测//step3
 	{
-		Set_temp--;				//设定值-1
-		if(Set_temp<0)
-		{Set_temp=0;}
+		if(MODE == ModeA)
+		{
+			Set_temp1--;				//设定值-1
+			if(Set_temp1<0)
+			{Set_temp1=0;}
+		}else if(MODE == ModeB)
+		{
+			Set_temp2--;				//设定值-1
+			if(Set_temp2<0)
+			{Set_temp2=0;}
+		}
 		Ctrol_Down_flag = 0;
 		Dat_Save_T_S = 1;	//允许保存计时
 		Time_count = 0;		//不满10秒的计时将被清零
@@ -129,7 +162,8 @@ void Timer0() interrupt 1
 
 		if(Sys_Time>12000)//超过20分钟则关闭主流程
 		{
-			Sys_SW = 0;//关闭主流程
+			if(MODE==ModeA)//只有在模式A下，才会自动停止加热
+			{Sys_SW = 0;}//关闭主流程			
 			Sys_Time = 0;
 		}
 /**************************************************************************************************/

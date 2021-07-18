@@ -26,69 +26,130 @@
 //#define ENABLE_IAP		0x86		//if SYSCLK<2MHZ
 //#define ENABLE_IAP		0x87		//if SYSCLK<1MHZ
 //Start address for STC12C5A60S2 series EEPROM
-#define	DEBUG_DATA	0x1234		//存储在 EEPROM 单元的数值
+#define	DEBUG_DATA1	0x9876		//存储在 EEPROM 单元的数值
+#define DEBUG_DATA2 0x8765
+#define DEBUG_DATA3 1
 
-#define	IAP_ADDRESS_L	0x0000	//EEPROM存入地址	总1K大小，2个扇区，开始地址0000，结束地址03ff
-#define IAP_ADDRESS_H	0x0001
-
+#define	IAP_ADDRESS1_L		0x0000	//EEPROM存入地址	总1K大小，2个扇区，开始地址0000，结束地址03ff
+#define IAP_ADDRESS1_H		0x0001
+#define	IAP_ADDRESS2_L		0x0002	//EEPROM存入地址	总1K大小，2个扇区，开始地址0000，结束地址03ff
+#define IAP_ADDRESS2_H		0x0003
+#define	IAP_ADDRESS_MODE_L	0x0004
+#define	IAP_ADDRESS_MODE_H	0x0005
 static void Delay(void);
 static void IapIdle(void);
 static uint8 IapReadByte(uint16 addr);
 static void IapProgramByte(uint16 addr,uint8 dat);
 static void IapEraseSector(uint16 addr);
-#ifdef TEST_EEPROM
-void EEPROM_Test(void)
+
+/*void EEPROM_Test(void)
 {
-		uint8 i,j;
-		uint16	a = 0;
+		uint8 i,j,m,n,x,y;
+		uint16	a,b,c;
 		printf("Erase start\r\n");
-		IapEraseSector(IAP_ADDRESS_L);	//Erase
-		IapEraseSector(IAP_ADDRESS_H);	//Erase
+		IapEraseSector(IAP_ADDRESS1_L);	//Erase
+		IapEraseSector(IAP_ADDRESS1_H);	//Erase
+		IapEraseSector(IAP_ADDRESS2_L);	//Erase
+		IapEraseSector(IAP_ADDRESS2_H);	//Erase
+		IapEraseSector(IAP_ADDRESS_MODE_L);	//Erase
+		IapEraseSector(IAP_ADDRESS_MODE_H);	//Erase
 		printf("Erase over\r\n");
-		IapProgramByte(IAP_ADDRESS_L,(uint8)(DEBUG_DATA>>8));//write
-		IapProgramByte(IAP_ADDRESS_H,(uint8)DEBUG_DATA);//write
+	
+		IapProgramByte(IAP_ADDRESS1_L,(uint8)(DEBUG_DATA1>>8));//write
+		IapProgramByte(IAP_ADDRESS1_H,(uint8)DEBUG_DATA1);//write
+	
+		IapProgramByte(IAP_ADDRESS2_L,(uint8)(DEBUG_DATA2>>8));//write
+		IapProgramByte(IAP_ADDRESS2_H,(uint8)DEBUG_DATA2);//write
+	
+		IapProgramByte(IAP_ADDRESS_MODE_L,(uint8)DEBUG_DATA3>>8);//write
+		IapProgramByte(IAP_ADDRESS_MODE_H,(uint8)DEBUG_DATA3);//write
 		printf("Program over\r\n");
 		Delay();
-		i =IapReadByte(IAP_ADDRESS_L);//read
-		j =IapReadByte(IAP_ADDRESS_H);//read
-		printf("CCC: %x \r\n",i,j);
+		i = IapReadByte(IAP_ADDRESS1_L);//read
+		j = IapReadByte(IAP_ADDRESS1_H);//read
+		
+		m = IapReadByte(IAP_ADDRESS2_L);//read
+		n = IapReadByte(IAP_ADDRESS2_H);//read
+		
+		x = IapReadByte(IAP_ADDRESS_MODE_L);//read
+		y = IapReadByte(IAP_ADDRESS_MODE_H);//read
+		
+		printf("CCC1: %x \r\n",i,j);
+		printf("CCC2: %x \r\n",m,n);
+		printf("mode: %x \r\n",x,y);
+		
 		a=((uint16)i<<8)+(uint16)j;//数据整合
-		printf("%x",a);
+		b=((uint16)m<<8)+(uint16)n;//数据整合
+		c=((uint16)x<<8)+(uint16)y;
+		printf("a:%x,b:%x c:%x \r\n",a,b,c);
 		while(1);
-}
-#endif
-uint8 Data_preservation(uint16 dat)
+}*/
+uint8 Data_preservation(uint16 dat1,uint16 dat2,uint16 mode)
 {
-	uint8 read_dat1,read_dat2;
-	uint16 ver;
+	uint8 read_dat1,read_dat2,read_dat3,read_dat4,read_dat5,read_dat6;
+	uint16 ver1,ver2,ver3;
 	
-	IapEraseSector(IAP_ADDRESS_L);	//Erase
-	IapEraseSector(IAP_ADDRESS_H);	//Erase
-	Delay();
-	IapProgramByte(IAP_ADDRESS_L,(uint8)(dat>>8));//write
-	IapProgramByte(IAP_ADDRESS_H,(uint8)dat);//write
-	Delay();
-	read_dat1 =IapReadByte(IAP_ADDRESS_L);//read
-	read_dat2 =IapReadByte(IAP_ADDRESS_H);//read
+	IapEraseSector(IAP_ADDRESS1_L);	//Erase
+	IapEraseSector(IAP_ADDRESS1_H);	//Erase
+	IapEraseSector(IAP_ADDRESS2_L);	//Erase
+	IapEraseSector(IAP_ADDRESS2_H);	//Erase
+	IapEraseSector(IAP_ADDRESS_MODE_L);	//Erase
+	IapEraseSector(IAP_ADDRESS_MODE_H);	//Erase
 	
-	ver = ((uint16)read_dat1<<8)+(uint16)read_dat2;
-	if(ver == dat)
+	Delay();
+	IapProgramByte(IAP_ADDRESS1_L,(uint8)(dat1>>8));//write
+	IapProgramByte(IAP_ADDRESS1_H,(uint8)dat1);//write
+	
+	IapProgramByte(IAP_ADDRESS2_L,(uint8)(dat2>>8));//write
+	IapProgramByte(IAP_ADDRESS2_H,(uint8)dat2);//write
+	
+	IapProgramByte(IAP_ADDRESS_MODE_L,(uint8)mode>>8);//write
+	IapProgramByte(IAP_ADDRESS_MODE_H,(uint8)mode);//write
+	
+	Delay();
+	read_dat1 = IapReadByte(IAP_ADDRESS1_L);//read
+	read_dat2 = IapReadByte(IAP_ADDRESS1_H);//read
+	
+	read_dat3 = IapReadByte(IAP_ADDRESS2_L);//read
+	read_dat4 = IapReadByte(IAP_ADDRESS2_H);//read
+	
+	read_dat5 = IapReadByte(IAP_ADDRESS_MODE_L);//read
+	read_dat6 = IapReadByte(IAP_ADDRESS_MODE_H);//read
+	ver1 = ((uint16)read_dat1<<8)+(uint16)read_dat2;
+	ver2 = ((uint16)read_dat3<<8)+(uint16)read_dat4;
+	ver3 = ((uint16)read_dat5<<8)+(uint16)read_dat6;
+	if((ver1 == dat1)&&(ver2 == dat2)&&(ver3 == mode))
 	{
 		printf("program success;\r\n");
 		return 1;
 	}else
 	{
-		printf("program fail:%x",ver);
+		printf("program fail:%x ,%x ,%x\r\n",ver1,ver2,ver3);
 		return 0;
 	}
 }
-uint16 Get_Temp_set(void)
+uint16 Get_Temp_set1(void)
 {
 	uint8 read_dat1,read_dat2;
-	read_dat1 =IapReadByte(IAP_ADDRESS_L);//read
-	read_dat2 =IapReadByte(IAP_ADDRESS_H);//read
+	read_dat1 =IapReadByte(IAP_ADDRESS1_L);//read
+	read_dat2 =IapReadByte(IAP_ADDRESS1_H);//read
 	return (((uint16)read_dat1<<8)+(uint16)read_dat2);
 }
+uint16 Get_Temp_set2(void)
+{
+	uint8 read_dat1,read_dat2;
+	read_dat1 =IapReadByte(IAP_ADDRESS2_L);//read
+	read_dat2 =IapReadByte(IAP_ADDRESS2_H);//read
+	return (((uint16)read_dat1<<8)+(uint16)read_dat2);
+}
+uint16 Get_Mode(void)
+{
+	uint8 read_dat1,read_dat2;
+	read_dat1 =IapReadByte(IAP_ADDRESS_MODE_L);//read
+	read_dat2 =IapReadByte(IAP_ADDRESS_MODE_H);//read
+	return (((uint16)read_dat1<<8)+(uint16)read_dat2);
+}
+
 /*----------------------------------------
 Software delay function
 -----------------------------------------*/

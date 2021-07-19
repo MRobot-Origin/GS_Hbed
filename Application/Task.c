@@ -18,7 +18,7 @@ uint16 Set_temp2 = 0;//设置目标温度
 
 uint8 Data_pre_Flag = 0;//数据保存Flag,全局变量
 uint8 SW_flag = 0;			//为1时，允许开始温控程序
-
+static SW_OFF_Flag = 0;//休眠唤醒使用
 extern uint8 Data_preservation(uint16 dat1,uint16 dat2,uint16 mode);//保存设定温度到EEPROM
 extern uint16 Get_Temp_set1(void);
 extern uint16 Get_Temp_set2(void);
@@ -73,28 +73,36 @@ void loop(void)
 {
 	while(1)//温度控制
 	{
-		if(Sys_SW ==1 )//系统控制运行开关
+		if(Sys_SW == 1)//系统控制运行开关
 		{
-			Tem_calculation();//采集当前温度
+			if(SW_OFF_Flag==1)
+			{
+				SW_OFF_Flag=0;
+				LCD_Write_String(0,0,"Sys:  .  V Mode ");	//显示系统工作电压和当前工作模式
+				LCD_Write_String(0,1,"Tem:    C->    C");	//显示设定温度	//工作界面显示
+			}
+			Tem_calculation();													//采集当前温度
+			LCD_V(4,0,1);																//显示系统供电电压
+			LCD_TEM(4,1,Temp);													//显示当前温度值
 			//简单的温度控制
-			if(SW_flag == 1)//如果当前允许加热，则开始温度控制
+			if(SW_flag == 1)														//如果当前允许加热，则开始温度控制
 			{
 				if(MODE == ModeA)//模式A温控
 				{
-					LCD_Write_String(15,0,"A");//LCD显示当前模式
-					LCD_TEM(11,1,Set_temp1);		//显示设定温度值
-					if((Temp<(Set_temp1-5))&&(Temp>0))//小于设定温度5度开始加热
+					LCD_Write_String(15,0,"A");							//LCD显示当前模式
+					LCD_TEM(11,1,Set_temp1);								//显示设定温度值
+					if((Temp<(Set_temp1-5))&&(Temp>0))			//小于设定温度5度开始加热
 					{
 						BED = ON;
 					}else if((Temp>Set_temp1)||(Temp==0)||(Temp<0))//大于设定温度停止加热
 					{
 						BED = OFF;
 					}
-				}else if(MODE == ModeB)//模式B温控
+				}else if(MODE == ModeB)										//模式B温控
 				{
-					LCD_Write_String(15,0,"B");//LCD显示当前模式
-					LCD_TEM(11,1,Set_temp2);		//显示设定温度值
-					if((Temp<(Set_temp2-5))&&(Temp>0))//小于设定温度5度开始加热
+					LCD_Write_String(15,0,"B");							//LCD显示当前模式
+					LCD_TEM(11,1,Set_temp2);								//显示设定温度值
+					if((Temp<(Set_temp2-5))&&(Temp>0))			//小于设定温度5度开始加热
 					{
 						BED = ON;
 					}else if((Temp>Set_temp2)||(Temp==0)||(Temp<0))//大于设定温度停止加热
@@ -105,16 +113,13 @@ void loop(void)
 			}
 			if(Temp<0)//最小值为0
 			{Temp=0;}
-			LCD_V(4,0,1);//显示系统供电电压
-			
-			LCD_TEM(4,1,Temp);				//显示当前温度值
 			/**********************重要代码，修改可能引起过度写入EEPROM导致芯片损毁***************************/
 			////先读取数据验证，然后再进行写入，避免多次重复写入
 			if(Dat_Save_flag==1)
 			{
-				Flash_date1 = Get_Temp_set1();//读取数据
-				Flash_date2 = Get_Temp_set2();//读取数据
-				Flash_date3 = Get_Mode();//读取数据
+				Flash_date1 = Get_Temp_set1();						//读取数据
+				Flash_date2 = Get_Temp_set2();						//读取数据
+				Flash_date3 = Get_Mode();									//读取数据
 				
 				if((Flash_date1 != Set_temp1)||(Flash_date2 != Set_temp2)||(Flash_date3 != MODE))//如果设置是一样的，则跳过,如果改变了目标温度则将当前设置写入Flash
 				{
@@ -127,15 +132,16 @@ void loop(void)
 //		printf("Set: %d \r\n",Set_temp);//串口输出当前温度、
 //			printf("Set: %f \r\n",Rt);//串口输出当前阻值
 //		printf("T: %f \r\n",Temp);//串口输出当前温度
-			delay_ms(500);//大概0.1秒刷新一次屏幕			
+			delay_ms(500);//大概0.5秒刷新一次屏幕			
 		}
-		else
+		else if((Sys_SW == 0)&&(SW_OFF_Flag == 0))
 		{
 			BED = OFF;
 			Beep = 1;			 //超时关闭热床前，蜂鸣器响一秒
 			delay_ms(1000);
 			Beep = 0;
 			LCD_Clear();
+			SW_OFF_Flag = 1;//下次唤醒时重新刷新一遍LCD初始显示
 		}
 	}
 }
@@ -150,17 +156,23 @@ void loop(void)
  }
 void LCD_TEM(uint8 a,uint8 b,float p)//温度值显示
 {
-	if(((int)p/100)==0)//清除首位0显示
+	if((int)p>99)//百位显示
+	{
+		LCD_Write_Char(a,b,(int)p/100+0x30);
+		LCD_Write_Char(a+1,b,((int)p%100)/10+0x30);
+		LCD_Write_Char(a+2,b,(int)p%10+0x30);
+	}
+	if(((int)p>9)&&((int)p<100))//十位显示
+	{
+		LCD_Write_Char(a,b,' ');
+		LCD_Write_Char(a+1,b,((int)p%100)/10+0x30);
+		LCD_Write_Char(a+2,b,(int)p%10+0x30);
+	}
+	if((int)p<10)
 	{
 		LCD_Write_Char(a,b,' ');
 		LCD_Write_Char(a+1,b,' ');
+		LCD_Write_Char(a+2,b,(int)p%10+0x30);
 	}
-	else
-	{LCD_Write_Char(a,b,(int)p/100+0x30);}//百位
-	
-	if((((int)p%100)/10)!=0)
-	{LCD_Write_Char(a+1,b,((int)p%100)/10+0x30);}//十位
-	
-	LCD_Write_Char(a+2,b,(int)p%10+0x30);     //个位
 }
 //
